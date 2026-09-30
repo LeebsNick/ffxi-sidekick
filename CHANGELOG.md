@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.8.1] - 2026-09-30
 
 ### Fixed
-- **Render time no longer climbs when automation starts** (`common.refresh_game_state_if_stale`, `automation_tick` in `Sidekick.lua`): the party snapshot was rebuilt on every frame while running, though the engine acts at most every 1.1s. It is now rebuilt at most every 0.1s, the same guard the config window, panel and follow tick already used.
+- **Render time no longer climbs when automation starts** (`common.refresh_game_state_if_stale`, `automation_tick` in `Sidekick.lua`): the party snapshot was rebuilt on every frame while running, though the engine acts at most every 1.1s. It is now rebuilt at most every 0.1s, the same guard the config window, panel and follow tick already used. Reported by Toots / Tiffin, with Yunas, Crobat and Sleazy.
 - **Consumable counts are read at most twice a second** (`common.count_equippable_items`): every item-gated row in the config window (most Ninjutsu, Reward, Repair) walked every slot of nine containers on every frame. The count is now remembered per item spec for 0.5s.
 - **Tracked targets are found at their last entity index** (`refresh_game_state`): the walk of all 2303 entity slots per tracked target now only runs when that slot no longer holds the target, such as after a zone.
 - **The uncastable-song check runs twice a second** (`disable_uncastable_songs` in `components.lua`): it ran on every frame for every job, walking the full ability list per party-buff key.

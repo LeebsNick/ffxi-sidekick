@@ -57,7 +57,7 @@ The one exception is **opt-in leader following** (off by default): with **Follow
 ### [2.8.1] - 2026-09-30
 
 ### Fixed
-- **Render time no longer jumps when automation starts**: the party snapshot is rebuilt ten times a second instead of every frame.
+- **Render time no longer jumps when automation starts**: the party snapshot is rebuilt ten times a second instead of every frame. — **Toots / Tiffin**, **Yunas**, **Crobat**, **Sleazy**
 - **Lighter config window**: consumable counts, tracked-target lookups and the song availability check run a few times a second instead of every frame.
 
 ## Features
