@@ -543,13 +543,15 @@ local function automation_tick()
         return
     end
 
-    -- Gather player + party snapshot once for this tick.
-    -- All action modules can read common.game_state.player / common.game_state.party[1..5]
-    -- instead of making individual API calls each cycle.
-    -- Must run BEFORE the mount guard so that is_mounted is refreshed every tick;
+    -- Gather player + party snapshot for this tick, at most once per 0.1s: the UI
+    -- may already have rebuilt it this frame, and the priority engine below only acts
+    -- every 1.1s, so a per-frame rebuild was wasted work that showed up as render time.
+    -- All action modules read common.game_state.player / .party[1..5] instead of
+    -- making individual API calls each cycle.
+    -- Must run BEFORE the mount guard so that is_mounted is refreshed;
     -- otherwise once set to true it would never be cleared (the early return prevented
     -- refresh_game_state from executing).
-    common.refresh_game_state()
+    common.refresh_game_state_if_stale()
 
     -- Player has not fully loaded in yet (job reads as NON/NON).
     -- Skip all automation until the server sends valid job data.
@@ -785,10 +787,7 @@ local function follow_tick()
     -- Engine owns follow when it can (keeps healing above follow); only take over otherwise.
     if automation_enabled and common.can_attack() then return end
 
-    if not common.game_state or not common.game_state.refreshed_at
-        or os.clock() - common.game_state.refreshed_at > 0.1 then
-        common.refresh_game_state()
-    end
+    common.refresh_game_state_if_stale()
 
     if common.is_loading() then return end
     if common.is_mounted() then return end
