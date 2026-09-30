@@ -26,6 +26,8 @@ read comes from `fake.state`:
 | `ability_recasts[recast_id]` | the 32-slot ability recast list |
 | `entities[target_index]` | tables from `fake.entity{...}` |
 | `commands` | everything sent through `QueueCommand` |
+| `inventory[container]` | list of `{ Id, Count }`; `inventory_reads` counts `GetContainerItem` calls |
+| `bt_index` | the entity index `<bt>` resolves to (0 = none) |
 
 A test edits that table and calls `fake.reset()` between cases.
 

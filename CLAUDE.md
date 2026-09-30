@@ -66,10 +66,11 @@ Read `ARCHITECTURE.md` and `README.md` for the full map — they are kept curren
 that matter for editing:
 
 **Tick loop.** `Sidekick.lua`'s `d3d_present` handler runs every frame: refreshes
-`common.game_state` (one snapshot of player/party/alliance/pet HP, MP, buffs, server IDs —
-read this instead of re-querying `AshitaCore` per module), guards (loading / mounted / dead /
-casting / can't-attack), detects job/level change and reloads the job def, then calls
-`automation.execute_priority_actions`.
+`common.game_state` if it is older than 0.1s (`refresh_game_state_if_stale`; one snapshot of
+player/party/alliance/pet HP, MP, buffs, server IDs — read this instead of re-querying
+`AshitaCore` per module, and never call `refresh_game_state` directly from a per-frame
+path), guards (loading / mounted / dead / casting / can't-attack), detects job/level change
+and reloads the job def, then calls `automation.execute_priority_actions`.
 
 **Priority engine** (`lib/core/automation.lua`). Iterates the job's `priority_order`, calls
 each `action_module.execute(...)` inside `pcall` (a throwing module is logged, not fatal).
