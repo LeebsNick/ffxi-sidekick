@@ -729,8 +729,15 @@ end
 -- this -- everything else (general buffs, stratagem/Diffusion/Nether Void
 -- assignments) has no slot limit, so an out-of-range pick simply lies dormant
 -- and switches back on when the player levels up. Saves once if anything changed.
+-- Runs at most twice a second: each pass walks every ability for every party-buff key
+-- and asks the client about each song, which is too much for every rendered frame.
+local last_song_check = 0
+
 function ui_components.disable_uncastable_songs(ctx)
     if not ctx or not ctx.job_def or not ctx.party_buffs then return end
+    local now = os.clock()
+    if now - last_song_check < 0.5 then return end
+    last_song_check = now
     local filters = get_filters(ctx)
     local changed = false
     for key, targets in pairs(ctx.party_buffs) do
