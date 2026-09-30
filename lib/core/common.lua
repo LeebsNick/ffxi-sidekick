@@ -3837,14 +3837,18 @@ function common.refresh_game_state()
     -- Refresh tracked targets (outside-party players)
     -- -----------------------------------------------------------------------
     for sid, tt in pairs(tracked_targets) do
-        local entity = nil
-        -- Re-resolve entity by server_id (target_index may change across zones)
-        for idx = 0, 2302 do
-            local e = GetEntity(idx)
-            if e and e.ServerId == sid then
-                entity = e
-                tt.target_index = e.TargetIndex or 0
-                break
+        -- The last known index is tried first; the slot only changes across zones (or
+        -- gets reused by someone else), and the fallback is a walk of every slot.
+        local entity = (tt.target_index or 0) > 0 and GetEntity(tt.target_index) or nil
+        if not (entity and entity.ServerId == sid) then
+            entity = nil
+            for idx = 0, 2302 do
+                local e = GetEntity(idx)
+                if e and e.ServerId == sid then
+                    entity = e
+                    tt.target_index = e.TargetIndex or 0
+                    break
+                end
             end
         end
 
