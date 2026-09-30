@@ -28,8 +28,11 @@ local default_state = {
     ability_recasts = {},    -- [recast_id] = timer in 1/60 s; absent = never started
     entities = {},           -- [target_index] = { ServerId, Name, HPPercent, Movement.LocalPosition, ... }
     target_index = 0,        -- current <t>
+    bt_index = 0,            -- current <bt>; 0 = none
     commands = {},           -- every QueueCommand, oldest first
     strings = {},            -- [table] = { [id] = name } for GetResourceManager():GetString
+    inventory = {},          -- [container] = list of { Id, Count }; GetContainerItem is 0-based
+    inventory_reads = 0,     -- GetContainerItem calls, so a test can see a container walk
 };
 
 function fake.reset()
@@ -213,8 +216,15 @@ end
 
 local function inventory()
     return {
-        GetContainerCountMax = function() return 0; end,
-        GetContainerItem = function() return { Id = 0, Count = 0 }; end,
+        GetContainerCountMax = function(_, c)
+            local items = fake.state.inventory[c];
+            return items and #items or 0;
+        end,
+        GetContainerItem = function(_, c, i)
+            fake.state.inventory_reads = fake.state.inventory_reads + 1;
+            local items = fake.state.inventory[c];
+            return items and items[i + 1] or { Id = 0, Count = 0 };
+        end,
         GetEquippedItem = function() return { Index = 0 }; end,
     };
 end
@@ -266,6 +276,20 @@ end
 package.preload['imgui'] = function()
     return setmetatable({}, { __index = function() return function() return false; end; end });
 end
+-- Ashita's imgui binding also injects the ImGui* enums and FLT_MAX as globals; any value
+-- lets lib/ui modules load, since no test draws.
+setmetatable(_G, { __index = function(_, k)
+    if type(k) == 'string' and k:match('^ImGui') then return 0; end
+end });
+FLT_MAX = 3.4e38;
+
+-- lib/core/targets.lua resolves <bt>, <r> and <scan> by calling client functions found
+-- by signature scan. The fake's memory.find hands back a dummy address, so calling
+-- through it would crash the process: read those three from fake.state instead.
+local targets = require('lib.core.targets');
+targets.get_bt = function() return fake.state.entities[fake.state.bt_index]; end
+targets.get_r = function() return nil; end
+targets.get_scan = function() return nil; end
 
 fake.reset();
 return fake;
