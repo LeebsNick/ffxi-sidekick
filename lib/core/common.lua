@@ -1035,7 +1035,17 @@ end
 -- Count how many of the given items the player holds across every
 -- equip-eligible container. spec is a list of tier entries. Returns a total
 -- count (0 if none / inventory not loaded).
+-- Remembered per spec for half a second: the config window asks once per ability row per
+-- frame, and each answer is a walk of every slot in nine containers. Shorter than the
+-- 1.1s action throttle, so automation never acts on a count older than one tick. Weak
+-- keys let a reloaded job definition drop its spec tables.
+local item_count_cache = setmetatable({}, { __mode = 'k' })
+
 function common.count_equippable_items(spec)
+    local now = os.clock()
+    local hit = item_count_cache[spec]
+    if hit and now - hit.at < 0.5 then return hit.count end
+
     local inventory = get_inventory()
     if not inventory then return 0 end
 
@@ -1053,6 +1063,7 @@ function common.count_equippable_items(spec)
             end
         end
     end
+    item_count_cache[spec] = { at = now, count = total }
     return total
 end
 
